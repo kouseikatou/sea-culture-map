@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Country, HeritageKind } from '../data/countries'
 
 const KIND_LABEL: Record<HeritageKind, string> = {
@@ -16,13 +16,66 @@ function Fact({ label, value, wide }: { label: string; value: string; wide?: boo
   )
 }
 
-type Props = {
-  country: Country | null
-  onClose: () => void
+/** 詳細解説を音声で読み上げるボタン（Web Speech API） */
+function SpeakButton({ text }: { text: string }) {
+  const [speaking, setSpeaking] = useState(false)
+  const supported =
+    typeof window !== 'undefined' && 'speechSynthesis' in window
+
+  useEffect(() => {
+    return () => {
+      if (supported) window.speechSynthesis.cancel()
+    }
+  }, [supported])
+
+  if (!supported) return null
+
+  const toggle = () => {
+    if (speaking) {
+      window.speechSynthesis.cancel()
+      setSpeaking(false)
+      return
+    }
+    window.speechSynthesis.cancel()
+    const utter = new SpeechSynthesisUtterance(text)
+    utter.lang = 'ja-JP'
+    utter.rate = 1
+    utter.onend = () => setSpeaking(false)
+    utter.onerror = () => setSpeaking(false)
+    setSpeaking(true)
+    window.speechSynthesis.speak(utter)
+  }
+
+  return (
+    <button
+      type="button"
+      className="speak-btn"
+      onClick={toggle}
+      aria-pressed={speaking}
+    >
+      <span className="speak-btn__icon" aria-hidden="true">
+        {speaking ? '◼' : '▶'}
+      </span>
+      {speaking ? '停止' : '音声で聞く'}
+    </button>
+  )
 }
 
-export function CountryPanel({ country, onClose }: Props) {
+type Props = {
+  country: Country | null
+  activeHeritage: string | null
+  onClose: () => void
+  onToggleHeritage: (name: string) => void
+}
+
+export function CountryPanel({
+  country,
+  activeHeritage,
+  onClose,
+  onToggleHeritage,
+}: Props) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
   const isOpen = country !== null
 
   // 開いたら閉じるボタンにフォーカス、Esc で閉じる
@@ -35,6 +88,13 @@ export function CountryPanel({ country, onClose }: Props) {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [isOpen, onClose])
+
+  // 選択された世界遺産カードをパネル内で見える位置へスクロール
+  useEffect(() => {
+    if (!activeHeritage) return
+    const el = scrollRef.current?.querySelector('.heritage-item.is-active')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  }, [activeHeritage])
 
   return (
     <>
@@ -66,7 +126,7 @@ export function CountryPanel({ country, onClose }: Props) {
               <p className="panel__summary">{country.summary}</p>
             </header>
 
-            <div className="panel__scroll">
+            <div className="panel__scroll" ref={scrollRef}>
               <div className="facts">
                 <Fact label="首都" value={country.capital} />
                 <Fact label="人口" value={country.population} />
@@ -100,24 +160,57 @@ export function CountryPanel({ country, onClose }: Props) {
                   この国には、まだ世界遺産の登録はありません。
                 </p>
               ) : (
-                <div className="heritage-list">
-                  {country.heritageSites.map((site) => (
-                    <div
-                      key={site.name}
-                      className="heritage-card"
-                      data-kind={site.kind}
-                    >
-                      <div className="heritage-card__top">
-                        <span className="badge" data-kind={site.kind}>
-                          {KIND_LABEL[site.kind]}
-                        </span>
-                        <span className="badge__year">{site.inscribedYear}年登録</span>
-                      </div>
-                      <div className="heritage-card__name">{site.name}</div>
-                      <p className="heritage-card__note">{site.note}</p>
-                    </div>
-                  ))}
-                </div>
+                <>
+                  <p className="heritage-hint">
+                    カードを選ぶと詳しい解説が開きます。
+                  </p>
+                  <div className="heritage-list">
+                    {country.heritageSites.map((site) => {
+                      const active = activeHeritage === site.name
+                      return (
+                        <div
+                          key={site.name}
+                          className={`heritage-item${active ? ' is-active' : ''}`}
+                          data-kind={site.kind}
+                        >
+                          <button
+                            type="button"
+                            className="heritage-header"
+                            aria-expanded={active}
+                            onClick={() => onToggleHeritage(site.name)}
+                          >
+                            <span className="heritage-card__top">
+                              <span className="badge" data-kind={site.kind}>
+                                {KIND_LABEL[site.kind]}
+                              </span>
+                              <span className="badge__year">
+                                {site.inscribedYear}年登録
+                              </span>
+                            </span>
+                            <span className="heritage-card__name">
+                              {site.name}
+                              <span className="heritage-card__chevron" aria-hidden="true">
+                                ›
+                              </span>
+                            </span>
+                            {!active && (
+                              <span className="heritage-card__note">{site.note}</span>
+                            )}
+                          </button>
+
+                          {active && (
+                            <div className="heritage-detail">
+                              <p className="heritage-detail__text">{site.detail}</p>
+                              <SpeakButton
+                                text={`${site.name}。${site.detail}`}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
               )}
             </div>
           </>

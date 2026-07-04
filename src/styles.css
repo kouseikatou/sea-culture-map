@@ -173,6 +173,15 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; margin: 0; line-h
 .marker-heritage[data-kind='cultural'] { background: var(--color-sea); }
 .marker-heritage[data-kind='natural']  { background: var(--color-jade); }
 .marker-heritage[data-kind='mixed']    { background: var(--color-plum); }
+.marker-heritage.is-active {
+  width: 20px; height: 20px;
+  border-color: var(--color-gold);
+  animation: heritagePulse 1.7s var(--ease) infinite;
+}
+@keyframes heritagePulse {
+  0%, 100% { box-shadow: 0 0 0 3px oklch(72% 0.14 78 / 0.45), 0 2px 8px -1px oklch(20% 0.04 240 / 0.6); }
+  50% { box-shadow: 0 0 0 10px oklch(72% 0.14 78 / 0), 0 2px 8px -1px oklch(20% 0.04 240 / 0.6); }
+}
 
 /* Leaflet 既定 UI の色調整 */
 .leaflet-container { background: oklch(30% 0.03 220); font-family: var(--font-sans); }
@@ -274,28 +283,115 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; margin: 0; line-h
   background: var(--color-gold);
 }
 
-/* 世界遺産リスト */
-.heritage-list { display: grid; gap: 0.6rem; margin-top: 0.4rem; }
-.heritage-card {
-  width: 100%;
-  text-align: left;
+/* 世界遺産リスト（アコーディオン） */
+.heritage-hint {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  color: var(--color-text-soft);
+}
+.heritage-list { display: grid; gap: 0.6rem; margin-top: 0.2rem; }
+
+.heritage-item {
   border: 1px solid var(--color-line);
   border-left: 4px solid var(--color-line);
-  background: var(--color-surface);
   border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  overflow: hidden;
+  transition: box-shadow var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.heritage-item[data-kind='cultural'] { border-left-color: var(--color-sea); }
+.heritage-item[data-kind='natural']  { border-left-color: var(--color-jade); }
+.heritage-item[data-kind='mixed']    { border-left-color: var(--color-plum); }
+.heritage-item:hover { box-shadow: var(--shadow-card); transform: translateY(-1px); }
+.heritage-item.is-active {
+  box-shadow: var(--shadow-card);
+  border-color: var(--color-gold);
+  transform: none;
+}
+
+.heritage-header {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
   padding: 0.7rem 0.85rem;
   cursor: pointer;
-  transition: box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
 }
-.heritage-card:hover { box-shadow: var(--shadow-card); transform: translateY(-1px); }
-.heritage-card:focus-visible { outline: 3px solid var(--color-gold); outline-offset: 2px; }
-.heritage-card.is-active { box-shadow: var(--shadow-card); }
-.heritage-card[data-kind='cultural'] { border-left-color: var(--color-sea); }
-.heritage-card[data-kind='natural']  { border-left-color: var(--color-jade); }
-.heritage-card[data-kind='mixed']    { border-left-color: var(--color-plum); }
-.heritage-card__top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap; }
-.heritage-card__name { font-family: var(--font-serif); font-weight: 600; font-size: 0.98rem; }
-.heritage-card__note { margin: 0; font-size: 0.84rem; color: var(--color-text-soft); line-height: 1.6; }
+.heritage-header:focus-visible { outline: 3px solid var(--color-gold); outline-offset: -3px; }
+.heritage-card__top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; flex-wrap: wrap; }
+.heritage-card__name {
+  position: relative;
+  display: block;
+  padding-right: 1.5rem;
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+.heritage-card__chevron {
+  position: absolute;
+  right: 0.1rem;
+  top: 0;
+  font-size: 1.2rem;
+  line-height: 1.2;
+  color: var(--color-text-soft);
+  transition: transform var(--dur) var(--ease), color var(--dur-fast) var(--ease);
+}
+.heritage-item.is-active .heritage-card__chevron {
+  transform: rotate(90deg);
+  color: var(--color-gold-strong);
+}
+.heritage-card__note {
+  display: block;
+  margin: 0.2rem 0 0;
+  font-size: 0.84rem;
+  color: var(--color-text-soft);
+  line-height: 1.6;
+}
+
+.heritage-detail {
+  padding: 0 0.85rem 0.85rem;
+  animation: heritageReveal var(--dur) var(--ease);
+}
+.heritage-detail__text {
+  margin: 0.1rem 0 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.9;
+  color: var(--color-text);
+}
+@keyframes heritageReveal {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: none; }
+}
+
+.speak-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.85rem;
+  border: 1px solid var(--color-line);
+  border-radius: 999px;
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+}
+.speak-btn:hover { border-color: var(--color-gold); transform: translateY(-1px); }
+.speak-btn:focus-visible { outline: 3px solid var(--color-gold); outline-offset: 2px; }
+.speak-btn[aria-pressed='true'] {
+  background: var(--color-gold);
+  color: var(--color-surface);
+  border-color: var(--color-gold);
+}
+.speak-btn__icon { font-size: 0.62rem; }
 
 .badge {
   font-size: 0.68rem;

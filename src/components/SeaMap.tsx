@@ -10,6 +10,23 @@ const INITIAL_CENTER: [number, number] = [8, 114]
 const INITIAL_ZOOM = 5
 // このズーム以上で世界遺産ピンを表示
 const HERITAGE_ZOOM = 6
+// 世界遺産を選んだときに寄るズーム
+const HERITAGE_FOCUS_ZOOM = 8
+
+// 「動きを減らす」設定のとき、Leaflet の CSS ズームアニメーションは
+// transitionend に依存して固まることがあるため、アニメーションを切り、
+// 移動は瞬時に行う（アクセシビリティ対応）。
+const prefersReducedMotion =
+  typeof window !== 'undefined' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
+function moveTo(map: L.Map, coords: [number, number], zoom: number) {
+  if (prefersReducedMotion) {
+    map.setView(coords, zoom, { animate: false })
+  } else {
+    map.flyTo(coords, zoom, { duration: 0.85 })
+  }
+}
 
 function countryIcon(country: Country, active: boolean) {
   return L.divIcon({
@@ -20,12 +37,12 @@ function countryIcon(country: Country, active: boolean) {
   })
 }
 
-function heritageIcon(kind: string) {
+function heritageIcon(kind: string, active: boolean) {
   return L.divIcon({
     className: '',
-    html: `<div class="marker-heritage" data-kind="${kind}"></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
+    html: `<div class="marker-heritage${active ? ' is-active' : ''}" data-kind="${kind}"></div>`,
+    iconSize: active ? [22, 22] : [14, 14],
+    iconAnchor: active ? [11, 11] : [7, 7],
   })
 }
 
@@ -35,24 +52,47 @@ function ZoomWatcher({ onZoom }: { onZoom: (z: number) => void }) {
   return null
 }
 
-/** 選択された国へ寄る */
-function FlyToSelected({ selected }: { selected: Country | null }) {
+/** 選択された国・世界遺産へ寄る */
+function FlyTo({
+  selected,
+  activeHeritage,
+}: {
+  selected: Country | null
+  activeHeritage: string | null
+}) {
   const map = useMap()
+
+  // 世界遺産が選ばれたら、その場所へ
   useEffect(() => {
-    if (!selected) return
-    map.flyTo(selected.coords, Math.max(map.getZoom(), HERITAGE_ZOOM), {
-      duration: 0.8,
-    })
+    if (!selected || !activeHeritage) return
+    const site = selected.heritageSites.find((h) => h.name === activeHeritage)
+    if (site) moveTo(map, site.coords, HERITAGE_FOCUS_ZOOM)
+  }, [selected, activeHeritage, map])
+
+  // 国が選ばれたら（遺産未選択のとき）その国へ
+  useEffect(() => {
+    if (!selected || activeHeritage) return
+    moveTo(map, selected.coords, Math.max(map.getZoom(), HERITAGE_ZOOM))
+    // activeHeritage は依存に入れない（遺産選択時は上の効果に任せる）
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, map])
+
   return null
 }
 
 type Props = {
   selected: Country | null
+  activeHeritage: string | null
   onSelectCountry: (id: string) => void
+  onSelectHeritage: (countryId: string, name: string) => void
 }
 
-export function SeaMap({ selected, onSelectCountry }: Props) {
+export function SeaMap({
+  selected,
+  activeHeritage,
+  onSelectCountry,
+  onSelectHeritage,
+}: Props) {
   const [zoom, setZoom] = useState(INITIAL_ZOOM)
 
   const showHeritage = zoom >= HERITAGE_ZOOM
@@ -73,6 +113,9 @@ export function SeaMap({ selected, onSelectCountry }: Props) {
       maxBounds={SEA_BOUNDS}
       maxBoundsViscosity={1}
       zoomControl
+      zoomAnimation={!prefersReducedMotion}
+      markerZoomAnimation={!prefersReducedMotion}
+      fadeAnimation={!prefersReducedMotion}
       style={{ height: '100%', width: '100%' }}
     >
       <TileLayer
@@ -81,7 +124,7 @@ export function SeaMap({ selected, onSelectCountry }: Props) {
       />
 
       <ZoomWatcher onZoom={setZoom} />
-      <FlyToSelected selected={selected} />
+      <FlyTo selected={selected} activeHeritage={activeHeritage} />
 
       {countries.map((c) => (
         <Marker
@@ -94,14 +137,21 @@ export function SeaMap({ selected, onSelectCountry }: Props) {
       ))}
 
       {showHeritage &&
-        heritageMarkers.map(({ country, site }) => (
-          <Marker
-            key={`${country.id}-${site.name}`}
-            position={site.coords}
-            icon={heritageIcon(site.kind)}
-            eventHandlers={{ click: () => onSelectCountry(country.id) }}
-          />
-        ))}
+        heritageMarkers.map(({ country, site }) => {
+          const isActive =
+            selected?.id === country.id && activeHeritage === site.name
+          return (
+            <Marker
+              key={`${country.id}-${site.name}`}
+              position={site.coords}
+              icon={heritageIcon(site.kind, isActive)}
+              eventHandlers={{
+                click: () => onSelectHeritage(country.id, site.name),
+              }}
+              zIndexOffset={isActive ? 2000 : 0}
+            />
+          )
+        })}
     </MapContainer>
   )
 }
