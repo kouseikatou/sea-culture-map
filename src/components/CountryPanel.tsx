@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   BudgetLevel,
   Country,
   HeritageKind,
 } from '../data/countries'
 import { useRates } from '../hooks/useRates'
+
+// Firestore(firebase) は重いので、パネルを開いた時だけ遅延ロードする
+const TipsSection = lazy(() =>
+  import('./TipsSection').then((m) => ({ default: m.TipsSection })),
+)
 
 const KIND_LABEL: Record<HeritageKind, string> = {
   cultural: '文化遺産',
@@ -230,6 +235,12 @@ export function CountryPanel({
                   ))}
                 </ul>
               </div>
+
+              {/* みんなのTips（共有） */}
+              <h3 className="section-title">💬 みんなのTips</h3>
+              <Suspense fallback={<p className="tips__empty">読み込み中…</p>}>
+                <TipsSection countryId={country.id} countryName={country.name} />
+              </Suspense>
 
               {/* クイックファクト */}
               <h3 className="section-title">🧭 基本情報</h3>

@@ -1,9 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { SeaMap } from './components/SeaMap'
 import { CountryPanel } from './components/CountryPanel'
 import { CompareView } from './components/CompareView'
 import { useSelectedCountry } from './hooks/useSelectedCountry'
 import { countries } from './data/countries'
+import { mapsEnabled } from './config'
+
+// Google Maps(vis.gl) は鍵がある時だけ使うので遅延ロード
+const GoogleMap = lazy(() =>
+  import('./components/GoogleMap').then((m) => ({ default: m.GoogleMap })),
+)
 
 // 予算フィルタ（この予算レベル以下の国を強調）
 const BUDGET_FILTERS: { label: string; value: number | null }[] = [
@@ -58,13 +64,25 @@ export default function App() {
 
   return (
     <div className="app">
-      <SeaMap
-        selected={selected}
-        activeHeritage={activeHeritage}
-        maxBudget={maxBudget}
-        onSelectCountry={selectCountry}
-        onSelectHeritage={selectHeritageFromMap}
-      />
+      {mapsEnabled ? (
+        <Suspense fallback={null}>
+          <GoogleMap
+            selected={selected}
+            activeHeritage={activeHeritage}
+            maxBudget={maxBudget}
+            onSelectCountry={selectCountry}
+            onSelectHeritage={selectHeritageFromMap}
+          />
+        </Suspense>
+      ) : (
+        <SeaMap
+          selected={selected}
+          activeHeritage={activeHeritage}
+          maxBudget={maxBudget}
+          onSelectCountry={selectCountry}
+          onSelectHeritage={selectHeritageFromMap}
+        />
+      )}
 
       <header className="masthead">
         <p className="masthead__eyebrow">Asia Backpacker Map</p>

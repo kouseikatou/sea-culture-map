@@ -770,3 +770,89 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; margin: 0; line-h
   .cmp-prices { grid-template-columns: 1fr; }
   .cmp-table tbody th { width: 5rem; }
 }
+
+/* ============================================================
+   みんなのTips（共有）
+   ============================================================ */
+.tips { margin-top: 0.2rem; }
+.tips__lead { margin: 0 0 0.7rem; font-size: 0.82rem; color: var(--color-text-soft); line-height: 1.6; }
+.tips__mode { color: var(--color-plum); }
+.tips__login {
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-2);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+.tips__login:hover { background: var(--color-line); }
+.tips__empty { font-size: 0.85rem; color: var(--color-text-soft); padding: 0.6rem 0; }
+
+.tip-form {
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  padding: 0.7rem;
+  margin-bottom: 0.8rem;
+}
+.tip-form__row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.tip-form__cat {
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.tip-form__me { font-size: 0.78rem; color: var(--color-text-soft); display: inline-flex; align-items: center; gap: 0.4rem; }
+.tip-form__logout { border: none; background: none; color: var(--color-sea); font: inherit; font-size: 0.75rem; cursor: pointer; text-decoration: underline; }
+.tip-form__text {
+  width: 100%;
+  min-height: 4.5rem;
+  resize: vertical;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+.tip-form__text:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 1px; }
+.tip-form__actions { display: flex; align-items: center; justify-content: space-between; margin-top: 0.5rem; }
+.tip-form__count { font-size: 0.72rem; color: var(--color-text-soft); }
+.tip-form__submit {
+  border: none;
+  border-radius: 999px;
+  background: var(--color-gold);
+  color: oklch(23% 0.035 200);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
+}
+.tip-form__submit:hover { transform: translateY(-1px); }
+.tip-form__submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+.tip-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+.tip { border: 1px solid var(--color-line); border-radius: var(--radius-sm); padding: 0.6rem 0.7rem; background: var(--color-surface); }
+.tip__head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.3rem; }
+.tip__cat {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-surface);
+  background: var(--color-sea);
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+}
+.tip__author { font-size: 0.8rem; font-weight: 700; color: var(--color-text); }
+.tip__time { margin-left: auto; font-size: 0.72rem; color: var(--color-text-soft); }
+.tip__text { margin: 0; font-size: 0.88rem; line-height: 1.7; color: var(--color-text); white-space: pre-wrap; }
