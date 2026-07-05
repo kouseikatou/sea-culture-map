@@ -17,10 +17,12 @@ import { southeastAsia } from './regions/southeast'
 import { eastAsia } from './regions/east'
 import { southAsia } from './regions/south'
 import { centralAsia } from './regions/central'
+import { westAsia } from './regions/westasia'
 
 export const countries: Country[] = [
   ...southeastAsia,
   ...eastAsia,
   ...southAsia,
   ...centralAsia,
+  ...westAsia,
 ]

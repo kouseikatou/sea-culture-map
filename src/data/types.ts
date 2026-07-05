@@ -12,7 +12,7 @@ export type HeritageSite = {
 }
 
 // 地域グループ（地図の色分け・並び替え用）
-export type Region = 'southeast' | 'east' | 'south' | 'central'
+export type Region = 'southeast' | 'east' | 'south' | 'central' | 'westasia'
 
 // 予算レベル（1=激安 〜 4=高い）。地図のフィルタに使う。
 export type BudgetLevel = 1 | 2 | 3 | 4

@@ -4,9 +4,9 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { countries, type Country } from '../data/countries'
 
-// アジアに“切り抜く”境界。ここから離れられないようにする
-const ASIA_BOUNDS = L.latLngBounds([-12, 44], [56, 147])
-const INITIAL_CENTER: [number, number] = [26, 92]
+// アジアに“切り抜く”境界。西アジア(トルコ〜コーカサス)〜日本まで
+const ASIA_BOUNDS = L.latLngBounds([-12, 24], [56, 147])
+const INITIAL_CENTER: [number, number] = [29, 84]
 const INITIAL_ZOOM = 3
 // このズーム以上で世界遺産ピンを表示
 const HERITAGE_ZOOM = 6

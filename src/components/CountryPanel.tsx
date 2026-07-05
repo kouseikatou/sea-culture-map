@@ -4,6 +4,7 @@ import type {
   Country,
   HeritageKind,
 } from '../data/countries'
+import { useRates } from '../hooks/useRates'
 
 const KIND_LABEL: Record<HeritageKind, string> = {
   cultural: '文化遺産',
@@ -48,13 +49,17 @@ function CurrencyConverter({
   jpyPerUnit: number
 }) {
   const [local, setLocal] = useState('1000')
+  const { getJpy, live, updatedAt } = useRates()
+  const rate = getJpy(code, jpyPerUnit)
 
   const jpy = useMemo(() => {
     const n = parseFloat(local.replace(/,/g, ''))
     if (!isFinite(n)) return ''
-    const v = n * jpyPerUnit
+    const v = n * rate
     return v >= 100 ? Math.round(v).toLocaleString() : v.toFixed(1)
-  }, [local, jpyPerUnit])
+  }, [local, rate])
+
+  const rateLabel = rate >= 1 ? rate.toFixed(2) : Number(rate.toPrecision(2)).toString()
 
   return (
     <div className="converter">
@@ -72,7 +77,12 @@ function CurrencyConverter({
         <span className="converter__unit">円</span>
       </div>
       <p className="converter__note">
-        1 {code} ≈ {jpyPerUnit}円（概算・相場は変動します）
+        1 {code} ≈ {rateLabel}円{' '}
+        {live ? (
+          <span className="converter__live">● 本日のレート{updatedAt ? `（${updatedAt}）` : ''}</span>
+        ) : (
+          '（概算・相場は変動します）'
+        )}
       </p>
     </div>
   )

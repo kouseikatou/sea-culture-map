@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SeaMap } from './components/SeaMap'
 import { CountryPanel } from './components/CountryPanel'
+import { CompareView } from './components/CompareView'
 import { useSelectedCountry } from './hooks/useSelectedCountry'
+import { countries } from './data/countries'
 
 // 予算フィルタ（この予算レベル以下の国を強調）
 const BUDGET_FILTERS: { label: string; value: number | null }[] = [
@@ -23,6 +25,7 @@ export default function App() {
   const { selected, select } = useSelectedCountry()
   const [activeHeritage, setActiveHeritage] = useState<string | null>(null)
   const [maxBudget, setMaxBudget] = useState<number | null>(null)
+  const [compareOpen, setCompareOpen] = useState(false)
 
   // 国が切り替わったら世界遺産の選択をリセット
   const prevCountry = useRef(selected?.id)
@@ -71,8 +74,8 @@ export default function App() {
         </p>
       </header>
 
-      {/* 予算フィルタ */}
-      <div className="controls" role="group" aria-label="予算で絞る">
+      {/* 予算フィルタ＋比較 */}
+      <div className="controls" role="group" aria-label="地図の操作">
         <span className="controls__label">予算で絞る</span>
         <div className="segmented">
           {BUDGET_FILTERS.map((f) => (
@@ -86,6 +89,9 @@ export default function App() {
             </button>
           ))}
         </div>
+        <button className="compare-btn" onClick={() => setCompareOpen(true)}>
+          🆚 2国を比較
+        </button>
       </div>
 
       {/* 凡例（ピンの色＝予算） */}
@@ -104,6 +110,14 @@ export default function App() {
         onClose={() => selectCountry(null)}
         onToggleHeritage={toggleHeritage}
       />
+
+      {compareOpen && (
+        <CompareView
+          countries={countries}
+          initialA={selected?.id ?? null}
+          onClose={() => setCompareOpen(false)}
+        />
+      )}
     </div>
   )
 }
