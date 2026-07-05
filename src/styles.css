@@ -446,3 +446,204 @@ h1, h2, h3 { font-family: var(--font-serif); font-weight: 600; margin: 0; line-h
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }
+
+/* ============================================================
+   予算（バジェット）色トークン
+   ============================================================ */
+:root {
+  --budget-1: oklch(64% 0.15 150); /* 激安=緑 */
+  --budget-2: oklch(72% 0.15 120); /* 安い=黄緑 */
+  --budget-3: oklch(76% 0.14 75);  /* ふつう=琥珀 */
+  --budget-4: oklch(63% 0.18 30);  /* 高い=赤 */
+}
+
+/* 国ピンの色 = 予算レベル */
+.marker-country__pin[data-level='1'] { background: var(--budget-1); }
+.marker-country__pin[data-level='2'] { background: var(--budget-2); }
+.marker-country__pin[data-level='3'] { background: var(--budget-3); }
+.marker-country__pin[data-level='4'] { background: var(--budget-4); }
+.marker-country.is-dimmed .marker-country__pin { filter: grayscale(0.75) opacity(0.9); }
+.marker-country.is-dimmed .marker-country__label { opacity: 0.5; }
+
+/* ============================================================
+   予算フィルタ（セグメント）
+   ============================================================ */
+.controls {
+  position: absolute;
+  top: clamp(0.9rem, 0.6rem + 1vw, 1.6rem);
+  right: clamp(1rem, 0.6rem + 1.4vw, 2rem);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.4rem 0.5rem 0.4rem 0.85rem;
+  background: oklch(23% 0.035 200 / 0.78);
+  backdrop-filter: blur(8px);
+  border: 1px solid oklch(100% 0 0 / 0.12);
+  border-radius: 999px;
+}
+.controls__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: oklch(94% 0.01 85);
+  white-space: nowrap;
+}
+.segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: oklch(100% 0 0 / 0.1);
+  border-radius: 999px;
+}
+.segmented__btn {
+  border: none;
+  background: none;
+  color: oklch(90% 0.01 85);
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.segmented__btn:hover { color: var(--color-surface); }
+.segmented__btn.is-on { background: var(--color-gold); color: oklch(23% 0.035 200); }
+.segmented__btn:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 2px; }
+
+/* 凡例ドット（予算色） */
+.legend__dot[data-level='1'] { background: var(--budget-1); }
+.legend__dot[data-level='2'] { background: var(--budget-2); }
+.legend__dot[data-level='3'] { background: var(--budget-3); }
+.legend__dot[data-level='4'] { background: var(--budget-4); }
+
+/* ============================================================
+   パネル：予算バッジ
+   ============================================================ */
+.panel__titlerow { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+.budget-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  color: var(--color-surface);
+}
+.budget-badge[data-level='1'] { background: var(--budget-1); }
+.budget-badge[data-level='2'] { background: var(--budget-2); color: oklch(24% 0.02 260); }
+.budget-badge[data-level='3'] { background: var(--budget-3); color: oklch(24% 0.02 260); }
+.budget-badge[data-level='4'] { background: var(--budget-4); }
+.budget-badge__marks { letter-spacing: 1px; }
+.budget-badge__marks-dim { opacity: 0.4; }
+
+/* ============================================================
+   お金カード＋両替電卓＋物価
+   ============================================================ */
+.money-card {
+  background: var(--color-surface-2);
+  border-radius: var(--radius);
+  padding: 0.9rem;
+}
+.money-card__budget {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: 0 0 0.7rem;
+  font-size: 0.82rem;
+  color: var(--color-text-soft);
+}
+.money-card__budget strong {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  color: var(--color-gold-strong);
+}
+.converter {
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.7rem;
+}
+.converter__row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.converter__input {
+  width: 6rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.95rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.converter__input:focus-visible { outline: 2px solid var(--color-gold); outline-offset: 1px; }
+.converter__unit { font-size: 0.8rem; color: var(--color-text-soft); }
+.converter__eq { color: var(--color-text-soft); }
+.converter__result {
+  font-family: var(--font-serif);
+  font-weight: 700;
+  font-size: 1.05rem;
+  min-width: 3rem;
+}
+.converter__note { margin: 0.4rem 0 0; font-size: 0.7rem; color: var(--color-text-soft); }
+.price-list { list-style: none; margin: 0.7rem 0 0; padding: 0; display: grid; gap: 0.15rem; }
+.price-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px dashed var(--color-line);
+}
+.price-list li:last-child { border-bottom: none; }
+.price-list__label { color: var(--color-text-soft); }
+.price-list__value { font-weight: 700; text-align: right; }
+
+/* ============================================================
+   宗教の割合バー
+   ============================================================ */
+.religions { display: grid; gap: 0.5rem; }
+.religion__head { display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.22rem; }
+.religion__name { color: var(--color-text); }
+.religion__pct { color: var(--color-text-soft); font-weight: 700; }
+.religion__track { height: 8px; background: var(--color-surface-2); border-radius: 999px; overflow: hidden; }
+.religion__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-gold), var(--color-gold-strong));
+  border-radius: 999px;
+}
+
+/* ============================================================
+   主要都市・空港アクセス・ならでは
+   ============================================================ */
+.cities { list-style: none; margin: 0.2rem 0 0; padding: 0; display: grid; gap: 0.5rem; }
+.city {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.55rem 0.7rem;
+  background: var(--color-surface-2);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-gold);
+}
+.city__name { font-family: var(--font-serif); font-weight: 600; font-size: 0.95rem; }
+.city__role { font-size: 0.8rem; color: var(--color-text-soft); }
+.access-text { margin: 0; font-size: 0.9rem; line-height: 1.8; color: var(--color-text); }
+.highlights--gold li::before { background: var(--color-gold-strong); }
+
+/* ============================================================
+   予算フィルタ・凡例のモバイル調整
+   ============================================================ */
+@media (max-width: 640px) {
+  .controls {
+    top: auto;
+    bottom: 1rem;
+    right: 50%;
+    transform: translateX(50%);
+    max-width: 94vw;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .segmented__btn { padding: 0.35rem 0.6rem; }
+}

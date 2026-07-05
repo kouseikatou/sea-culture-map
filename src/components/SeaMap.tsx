@@ -4,14 +4,16 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { countries, type Country } from '../data/countries'
 
-// 東南アジアに“切り抜く”境界。ここから離れられないようにする
-const SEA_BOUNDS = L.latLngBounds([-11, 92], [29, 141])
-const INITIAL_CENTER: [number, number] = [8, 114]
-const INITIAL_ZOOM = 5
+// アジアに“切り抜く”境界。ここから離れられないようにする
+const ASIA_BOUNDS = L.latLngBounds([-12, 44], [56, 147])
+const INITIAL_CENTER: [number, number] = [26, 92]
+const INITIAL_ZOOM = 3
 // このズーム以上で世界遺産ピンを表示
 const HERITAGE_ZOOM = 6
 // 世界遺産を選んだときに寄るズーム
 const HERITAGE_FOCUS_ZOOM = 8
+// 国を選んだときに寄るズーム
+const COUNTRY_FOCUS_ZOOM = 6
 
 // 「動きを減らす」設定のとき、Leaflet の CSS ズームアニメーションは
 // transitionend に依存して固まることがあるため、アニメーションを切り、
@@ -28,12 +30,13 @@ function moveTo(map: L.Map, coords: [number, number], zoom: number) {
   }
 }
 
-function countryIcon(country: Country, active: boolean) {
+function countryIcon(country: Country, active: boolean, dimmed: boolean) {
+  const cls = `marker-country${active ? ' is-active' : ''}${dimmed ? ' is-dimmed' : ''}`
   return L.divIcon({
-    className: `marker-country${active ? ' is-active' : ''}`,
-    html: `<div class="marker-country__pin"></div><div class="marker-country__label">${country.name}</div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 30],
+    className: cls,
+    html: `<div class="marker-country__pin" data-level="${country.budgetLevel}"></div><div class="marker-country__label">${country.name}</div>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 26],
   })
 }
 
@@ -72,7 +75,7 @@ function FlyTo({
   // 国が選ばれたら（遺産未選択のとき）その国へ
   useEffect(() => {
     if (!selected || activeHeritage) return
-    moveTo(map, selected.coords, Math.max(map.getZoom(), HERITAGE_ZOOM))
+    moveTo(map, selected.coords, Math.max(map.getZoom(), COUNTRY_FOCUS_ZOOM))
     // activeHeritage は依存に入れない（遺産選択時は上の効果に任せる）
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selected, map])
@@ -83,6 +86,7 @@ function FlyTo({
 type Props = {
   selected: Country | null
   activeHeritage: string | null
+  maxBudget: number | null // これ以下の予算レベルだけ強調（null=全部）
   onSelectCountry: (id: string) => void
   onSelectHeritage: (countryId: string, name: string) => void
 }
@@ -90,6 +94,7 @@ type Props = {
 export function SeaMap({
   selected,
   activeHeritage,
+  maxBudget,
   onSelectCountry,
   onSelectHeritage,
 }: Props) {
@@ -108,9 +113,9 @@ export function SeaMap({
     <MapContainer
       center={INITIAL_CENTER}
       zoom={INITIAL_ZOOM}
-      minZoom={4}
+      minZoom={3}
       maxZoom={9}
-      maxBounds={SEA_BOUNDS}
+      maxBounds={ASIA_BOUNDS}
       maxBoundsViscosity={1}
       zoomControl
       zoomAnimation={!prefersReducedMotion}
@@ -126,15 +131,19 @@ export function SeaMap({
       <ZoomWatcher onZoom={setZoom} />
       <FlyTo selected={selected} activeHeritage={activeHeritage} />
 
-      {countries.map((c) => (
-        <Marker
-          key={c.id}
-          position={c.coords}
-          icon={countryIcon(c, selected?.id === c.id)}
-          eventHandlers={{ click: () => onSelectCountry(c.id) }}
-          zIndexOffset={1000}
-        />
-      ))}
+      {countries.map((c) => {
+        const dimmed = maxBudget != null && c.budgetLevel > maxBudget
+        return (
+          <Marker
+            key={c.id}
+            position={c.coords}
+            icon={countryIcon(c, selected?.id === c.id, dimmed)}
+            eventHandlers={{ click: () => onSelectCountry(c.id) }}
+            zIndexOffset={dimmed ? 100 : 1000}
+            opacity={dimmed ? 0.45 : 1}
+          />
+        )
+      })}
 
       {showHeritage &&
         heritageMarkers.map(({ country, site }) => {
